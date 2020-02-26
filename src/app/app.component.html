@@ -1,6 +1,28 @@
 
 <h1>TwincatConnector Check</h1>
 
-<button (click)=isTwincatRunning()>Check Twincat runs</button>
-
+<button (click)=isTwincatRunning()><h2>Check Twincat runs</h2></button>
+<h1>{{ isRunning }}</h1>
+<button (click)=readPlcNumbers()><h2>read the vars below</h2></button>
+<h3>
+<table>
+  <tr *ngFor="let item of varsToRead">
+    <td>{{item.name}}:</td>
+    <td>{{item.value}}</td>
+  </tr>
+</table>
+</h3>
+<button (click)=readString()><h2>read the string var below</h2></button>
+<h3>{{stringToRead.name}} (length:{{stringToRead.value}}) : {{stringValue}}</h3>
+<button (click)=readAllArrays()><h2>read the arrays var below</h2></button>
+<h3>{{arrayToRead1.name}} (length:{{arrayToRead1.value}}) : {{arrayResult1}}</h3>
+<h3>{{arrayToRead2.name}} (length:{{arrayToRead2.value}}) : {{arrayResult2}}</h3>
+<h3>{{arrayToRead3.name}} (length:{{arrayToRead3.value}}) : {{arrayResult3}}</h3>
+<h3>{{arrayToRead4.name}} (length:{{arrayToRead4.value}}) : {{arrayResult4}}</h3>
+<h3>{{arrayToRead5.name}} (length:{{arrayToRead5.value}}) : {{arrayResult5}}</h3>
+<h3>{{arrayToRead6.name}} (length:{{arrayToRead6.value}}) : {{arrayResult6}}</h3>
+<h3>{{arrayToRead7.name}} (length:{{arrayToRead7.value}}) : {{arrayResult7}}</h3>
+<h3>{{arrayToRead8.name}} (length:{{arrayToRead8.value}}) : {{arrayResult8}}</h3>
+<h3>{{arrayToRead9.name}} (length:{{arrayToRead9.value}}) : {{arrayResult9}}</h3>
+<h3>{{arrayToRead10.name}} (length:{{arrayToRead10.value}}) : {{arrayResult10}}</h3>
 
