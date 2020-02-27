@@ -2,12 +2,16 @@ import { HttpClient } from '@angular/common/http';
 import * as xml2js from 'xml2js';
 import { SoapDecoder } from './soap-decoder';
 import { NGXLogger } from 'ngx-logger';
+import { timeout, catchError } from 'rxjs/operators';
+import { throwError } from 'rxjs';
 
 export class TwincatClient {
   service: string
   adsNetId: string
   port: number
   retValue:boolean;
+
+  errorHandler: TwincatErrorHanlder;
 
   constructor(private http: HttpClient, private logger: NGXLogger) {
     console.info("TwincatClient instantiated");
@@ -52,7 +56,14 @@ export class TwincatClient {
 
   private sendMessage(message:String, callback:Function) {
     const headers = {'Content-Type': 'text/xml'}
-    this.http.post(this.service, message, {headers, responseType:'text'}).subscribe(//(x) => this.responseObserver())
+    this.http.post(this.service, message, {headers, responseType:'text'})
+    .pipe(timeout(2000),
+            catchError((error) => {
+              this.logger.error("Timeout Error")
+              this.errorHandler.httpTimeoutError()
+              return throwError(error || 'Timeout Exception');
+            }))
+    .subscribe(
       (xmlResponse) => {
         const parser = new xml2js.Parser({ strict: false, trim: true });
         parser.parseString(xmlResponse, (err:JSON, result:JSON) => {
@@ -66,8 +77,11 @@ export class TwincatClient {
           }
 
         });
-      });
+    });
   }
 }
 
+export interface TwincatErrorHanlder {
+  httpTimeoutError(): void
+}
 

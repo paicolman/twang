@@ -1,5 +1,5 @@
 import { Component } from '@angular/core'
-import { TwincatConnectorService } from './twincat-connector/twincat-connector.service'
+import { TwincatConnectorService, TwincatConnectorDelegate } from './twincat-connector/twincat-connector.service'
 import { HttpClient } from '@angular/common/http'
 import { TwincatDatatype, TwincatVariable } from './twincat-connector/twincat-interfaces'
 import { NGXLogger } from 'ngx-logger'
@@ -9,7 +9,7 @@ import { NGXLogger } from 'ngx-logger'
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent {
+export class AppComponent implements TwincatConnectorDelegate {
 
   title = 'twincat-connector'
   isRunning: string = "Don't know if the Twincat is running..."
@@ -52,7 +52,8 @@ export class AppComponent {
   arrayResult10:number[]
 
   constructor(private tcService: TwincatConnectorService, private logger: NGXLogger){
-    console.info('app.component instantiated')
+    tcService.delegate = this
+    this.logger.info('app.component instantiated')
     this.logger.trace('LOGGING IS ACTIVE AT LEVEL: Trace')
     this.logger.debug('LOGGING IS ACTIVE AT LEVEL: Debug')
     this.logger.info('LOGGING IS ACTIVE AT LEVEL: Info')
@@ -123,6 +124,16 @@ export class AppComponent {
     this.tcService.readPlcArray(this.arrayToRead10, (arrayResult:number[]) => {
       this.arrayResult10 = arrayResult
     })
+  }
+
+  //Delegate
+  errCode = 0
+  errMsg = "no Error"
+  error = false
+  errorCallback(errCode:number, errMsg:string) {
+    this.errCode = errCode
+    this.errMsg = errMsg
+    this.error = true
   }
 
 private delay(ms: number)

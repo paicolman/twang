@@ -1,6 +1,8 @@
 
 <h1>TwincatConnector Check</h1>
 
+<h1 *ngIf="error">!!ERROR!! {{errCode}}:{{errMsg}}</h1>
+
 <button (click)=isTwincatRunning()><h2>Check Twincat runs</h2></button>
 <h1>{{ isRunning }}</h1>
 <button (click)=readPlcNumbers()><h2>read the vars below</h2></button>
@@ -25,4 +27,5 @@
 <h3>{{arrayToRead8.name}} (length:{{arrayToRead8.value}}) : {{arrayResult8}}</h3>
 <h3>{{arrayToRead9.name}} (length:{{arrayToRead9.value}}) : {{arrayResult9}}</h3>
 <h3>{{arrayToRead10.name}} (length:{{arrayToRead10.value}}) : {{arrayResult10}}</h3>
+
 

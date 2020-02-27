@@ -16,7 +16,7 @@ export class DataReader {
   }
 
   readNUMBER(byteLength: TwincatDatatype) : number {
-    this.logger.trace("readNUMBER("+byteLength+")");
+
     let result = 0
     let charIdx = 0;
     while (charIdx < Math.abs(byteLength)) {
@@ -26,6 +26,7 @@ export class DataReader {
       charIdx ++;
     }
     this.decodedData = this.decodedData.substr(Math.abs(byteLength));
+    this.logger.trace("readNUMBER("+byteLength+"):"+this.convertToInt(result,byteLength));
     return this.convertToInt(result,byteLength);
     //return result
   }

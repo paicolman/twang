@@ -1,21 +1,26 @@
 import { Injectable } from '@angular/core'
-import { TwincatClient } from './twincat-client'
+import { TwincatClient, TwincatErrorHanlder } from './twincat-client'
 import { HttpClient } from '@angular/common/http'
 import { DataWriter } from './data-writer'
-import { TwincatVariable, TwincatString, TwincatDatatype } from './twincat-interfaces'
+import { TwincatVariable, TwincatString, TwincatDatatype, ADSERROR } from './twincat-interfaces'
 import { DataReader } from './data-reader'
 import { NGXLogger } from 'ngx-logger'
 
 @Injectable({
   providedIn: 'root'
 })
-export class TwincatConnectorService {
+export class TwincatConnectorService implements TwincatErrorHanlder {
+
+  delegate: TwincatConnectorDelegate;
 
   //TODO: These would need to be parametrized
   service = "https://192.168.1.133/TcAdsWebService/TcAdsWebService.dll"
   adsNetId = "192.168.1.133.1.1"
   port = 801
   twincat : TwincatClient
+  errCode = 0
+  errMsg = "No Errors"
+  errorCallback:Function
 
 
   constructor(private http:HttpClient, private logger: NGXLogger){
@@ -24,6 +29,8 @@ export class TwincatConnectorService {
     this.twincat.service = this.service
     this.twincat.adsNetId = this.adsNetId
     this.twincat.port = this.port
+    this.twincat.errorHandler = this
+    //this.errorCallback = errorCallback
   }
 
   checkTwincatRunning(callback:Function) {
@@ -45,7 +52,7 @@ export class TwincatConnectorService {
       for (const index in varsToRead) {
         if (!this.validatePLCResponse(handlesReader, true)) {
           console.error("Something went awfully wrong! Getting out of here!")
-          return
+          this.delegate.errorCallback(this.errCode, this.errMsg)
         }
       }
 
@@ -85,7 +92,7 @@ export class TwincatConnectorService {
         for (const index in varsToRead) {
           if (!this.validatePLCResponse(valuesReader, false)) {
             this.logger.error("Something went awfully wrong! Getting out of here!")
-            return
+            this.delegate.errorCallback(this.errCode, this.errMsg)
           }
         }
 
@@ -126,7 +133,7 @@ export class TwincatConnectorService {
 
       if (!this.validatePLCResponse(handlesReader, true)) {
         this.logger.error("Something went awfully wrong! Getting out of here!")
-        return
+        this.delegate.errorCallback(this.errCode, this.errMsg)
       }
 
       const varHandle = handlesReader.readNUMBER(TwincatDatatype.dword)
@@ -147,14 +154,22 @@ export class TwincatConnectorService {
     })
   }
 
+
+  /**
+   * Reads a PLC Array of any numeric type (no strings)
+   *
+   * @param {TwincatVariable} arrayToRead: Name, type and length of the array
+   * @param {Function} readPlcArrayCallback callback
+   * @memberof TwincatConnectorService
+   */
   readPlcArray(arrayToRead:TwincatVariable, readPlcArrayCallback: Function) {
     const vars:TwincatVariable[] = [arrayToRead]
     this.getVarHandles(vars, (decodedHandlesString) => {
       const handlesReader = new DataReader(decodedHandlesString, this.logger)
 
       if (!this.validatePLCResponse(handlesReader, true)) {
-        this.logger.error("Something went awfully wrong! Getting out of here!")
-        return
+        this.logger.error("Something went wrong! Getting out of here!")
+        //this.errorCallback(this.errCode, this.errMsg)
       }
 
       const varHandle = handlesReader.readNUMBER(TwincatDatatype.dword)
@@ -174,7 +189,7 @@ export class TwincatConnectorService {
 
         if (!this.validatePLCResponse(valuesReader, false)) {
           this.logger.error("Something went awfully wrong! Getting out of here!")
-          return
+          this.delegate.errorCallback(this.errCode, this.errMsg)
         }
 
         let result:number[] = []
@@ -238,10 +253,26 @@ export class TwincatConnectorService {
       const ignored = reader.readNUMBER(TwincatDatatype.dword)
     }
     if (err != 0) {
-        console.error("Unknown error decoding PLC response.") //TODO: improve error handling
-        return false
+      this.errCode = -1
+      this.errMsg = "Unknown error in Plc response"
+        if (ADSERROR[err] != undefined) {
+          this.errCode = err;
+          this.errMsg = ADSERROR[err]
+        }
+        this.logger.error("!! Error decoding PLC response !!")
+        this.logger.error(this.errMsg);
+        this.logger.error("Error code:"+ this.errCode);
     } else {
       return true
     }
   }
+
+  //Error handler delegate function
+  httpTimeoutError(): void {
+    this.delegate.errorCallback(408, "Timeout during Http request")
+  }
+}
+
+export interface TwincatConnectorDelegate {
+  errorCallback(errCode:number, errMsg: string): void
 }
