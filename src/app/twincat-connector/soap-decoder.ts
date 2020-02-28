@@ -1,10 +1,11 @@
 import { NGXLogger } from 'ngx-logger';
+import { TwincatErrorHanlder } from './twincat-client';
 
 export class SoapDecoder {
 
   decodedJson: JSON;
 
-  constructor(private logger: NGXLogger){}
+  constructor(private errorHandler: TwincatErrorHanlder, private logger: NGXLogger){}
 
   isPlcRunning(soapResponse: JSON): boolean {
     const jsonKeys = ["SOAP-ENV:ENVELOPE","SOAP-ENV:BODY","0","NS1:READSTATERESPONSE","0"];
@@ -45,6 +46,7 @@ export class SoapDecoder {
       } else {
         //TODO: Do some error handling if the SOAP response contains "FAULT"...
         this.logger.error("JSON element not found:"+keys[0]);
+        this.errorHandler.decodingError("Response Decoding Error. JSON element not found:"+keys[0])
         this.decodedJson = jsonObject;
       }
     } else {

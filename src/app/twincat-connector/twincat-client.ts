@@ -13,11 +13,10 @@ export class TwincatClient {
 
   errorHandler: TwincatErrorHanlder;
 
-  constructor(private http: HttpClient, private logger: NGXLogger) {
-    console.info("TwincatClient instantiated");
-  }
+  constructor(private http: HttpClient, private logger: NGXLogger) {}
 
-  readState(callback) {
+  readState(callback:Function) {
+    this.logger.trace("TwincatErrorHanlder.readState()")
     const message =
                 "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
                 "<SOAP-ENV:Envelope " +
@@ -55,9 +54,10 @@ export class TwincatClient {
   }
 
   private sendMessage(message:String, callback:Function) {
+    this.logger.trace("TwincatErrorHanlder.sendMessage("+message+")")
     const headers = {'Content-Type': 'text/xml'}
     this.http.post(this.service, message, {headers, responseType:'text'})
-    .pipe(timeout(2000),
+    .pipe(timeout(5000), //TODO: Parametrize the timeout!!
             catchError((error) => {
               this.logger.error("Timeout Error")
               this.errorHandler.httpTimeoutError()
@@ -69,7 +69,7 @@ export class TwincatClient {
         parser.parseString(xmlResponse, (err:JSON, result:JSON) => {
           this.logger.trace("sendMessage result:");
           this.logger.trace(result);
-          const soap = new SoapDecoder(this.logger);
+          const soap = new SoapDecoder(this.errorHandler, this.logger);
           if (message.search("ReadState") > -1){
             callback(soap.isPlcRunning(result))
           } else {
@@ -83,5 +83,6 @@ export class TwincatClient {
 
 export interface TwincatErrorHanlder {
   httpTimeoutError(): void
+  decodingError(msg:string): void
 }
 

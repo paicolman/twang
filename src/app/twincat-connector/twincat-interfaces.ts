@@ -10,15 +10,15 @@ export interface TwincatString {
 }
 
 export enum TwincatDatatype {
-  bool = 1,
-  sint = -1,
+  bool = 10, //Special case 1:10 to differentiate from byte
+  sint = -1, //Special case 2: All signed number to differentiate from unsigned
   int = -2,
   dint = -4,
   byte = 1,
   uint = 2,
   word = 2,
   dword = 4,
-  real = 5, //Special case, otherwise the doubleword gets wrong.
+  real = 5, //Special case 3: to differentiate from WORD.
   lreal = 8,
   string = 9,
 }

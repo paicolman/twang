@@ -3,9 +3,10 @@
 
 <h1 *ngIf="error">!!ERROR!! {{errCode}}:{{errMsg}}</h1>
 
-<button (click)=isTwincatRunning()><h2>Check Twincat runs</h2></button>
+<button (click)="isTwincatRunning()"><h2>Check Twincat runs</h2></button>
 <h1>{{ isRunning }}</h1>
-<button (click)=readPlcNumbers()><h2>read the vars below</h2></button>
+<button (click)="readPlcNumbers()"><h2>read the vars below</h2></button>
+<button (click)="writePlcNumbers()"><h2>write them vars!</h2></button>
 <h3>
 <table>
   <tr *ngFor="let item of varsToRead">
@@ -14,9 +15,13 @@
   </tr>
 </table>
 </h3>
-<button (click)=readString()><h2>read the string var below</h2></button>
+<button (click)="readString()"><h2>read the string var below</h2></button>
+<button (click)="writeString()"><h2>write the string</h2></button>
 <h3>{{stringToRead.name}} (length:{{stringToRead.value}}) : {{stringValue}}</h3>
-<button (click)=readAllArrays()><h2>read the arrays var below</h2></button>
+
+
+<button (click)="readAllArrays()"><h2>read the arrays var below</h2></button>
+<button (click)="writeAllArrays()"><h2>update the arrays</h2></button>
 <h3>{{arrayToRead1.name}} (length:{{arrayToRead1.value}}) : {{arrayResult1}}</h3>
 <h3>{{arrayToRead2.name}} (length:{{arrayToRead2.value}}) : {{arrayResult2}}</h3>
 <h3>{{arrayToRead3.name}} (length:{{arrayToRead3.value}}) : {{arrayResult3}}</h3>

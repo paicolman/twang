@@ -24,7 +24,20 @@ export class AppComponent implements TwincatConnectorDelegate {
     {name:"MAIN.DOUBLEWORDVALUE", type:TwincatDatatype.dword, value:0},
     {name:"MAIN.REALVALUE", type:TwincatDatatype.real, value:0},
     {name:"MAIN.LONGREAL" , type:TwincatDatatype.lreal, value:0},
-    {name:"MAIN.BOOLEAN"   , type:TwincatDatatype.bool, value:0}
+    {name:"MAIN.BOOLEAN"   , type:TwincatDatatype.bool, value:0},
+  ]
+
+  varsToWrite:TwincatVariable[] = [
+    {name:"MAIN.SINGLEINT", type:TwincatDatatype.sint, value:-10},
+    {name:"MAIN.INTEGER"   , type:TwincatDatatype.int, value:-600},
+    {name:"MAIN.DOUBLEINT" , type:TwincatDatatype.dint, value:-5465430},
+    {name:"MAIN.UNSIGNEDINT" , type:TwincatDatatype.uint, value:40},
+    {name:"MAIN.BYTEVALUE" , type:TwincatDatatype.byte, value:50},
+    {name:"MAIN.WORDVALUE" , type:TwincatDatatype.word, value:60},
+    {name:"MAIN.DOUBLEWORDVALUE", type:TwincatDatatype.dword, value:70},
+    {name:"MAIN.REALVALUE", type:TwincatDatatype.real, value:-80.1234},
+    {name:"MAIN.LONGREAL" , type:TwincatDatatype.lreal, value:-90.8898},
+    {name:"MAIN.BOOLEAN"   , type:TwincatDatatype.bool, value:15},
   ]
 
   stringToRead:TwincatVariable = {name:"MAIN.STRINGVALUE", type:TwincatDatatype.string, value:15}
@@ -72,10 +85,13 @@ export class AppComponent implements TwincatConnectorDelegate {
 
   readPlcNumbers() {
     this.tcService.readPlcNumbers(this.varsToRead, (result) => {
-      this.logger.debug("result:")
+      this.logger.trace("result:")
       this.logger.trace(result)
     })
     //this.tcService.readIntegerTrial()
+  }
+  writePlcNumbers() {
+    this.tcService.writePlcNumbers(this.varsToWrite)
   }
 
   readString() {
@@ -84,7 +100,11 @@ export class AppComponent implements TwincatConnectorDelegate {
     })
   }
 
-  async readAllArrays() {
+  writeString() {
+    this.tcService.writePlcString(this.stringToRead, "something")
+  }
+
+  readAllArrays() {
     this.tcService.readPlcArray(this.arrayToRead1, (arrayResult:number[]) => {
       this.arrayResult1 = arrayResult
     })
@@ -124,6 +144,29 @@ export class AppComponent implements TwincatConnectorDelegate {
     this.tcService.readPlcArray(this.arrayToRead10, (arrayResult:number[]) => {
       this.arrayResult10 = arrayResult
     })
+  }
+
+  writeAllArrays() {
+    let values = [-1, -2, -3, 4, 5]
+    this.tcService.updatePlcArray(this.arrayToRead1, values)
+    values = [-1000, -2000, -3000, 4000, 5000]
+    this.tcService.updatePlcArray(this.arrayToRead2, values)
+    values = [-10000, -20000, -30000, 40000, 50000]
+    this.tcService.updatePlcArray(this.arrayToRead3, values)
+    values = [1000, 2000, 3000, 4000, 5000]
+    this.tcService.updatePlcArray(this.arrayToRead4, values)
+    values = [10, 20, 30, 40, 50]
+    this.tcService.updatePlcArray(this.arrayToRead5, values)
+    values = [1000, 2000, 3000, 4000, 5000]
+    this.tcService.updatePlcArray(this.arrayToRead6, values)
+    values = [100050, 200050, 300050, 400050, 500050]
+    this.tcService.updatePlcArray(this.arrayToRead7, values)
+    values = [-1.1, 2.2, -3.3, 4.4, -5.5]
+    this.tcService.updatePlcArray(this.arrayToRead8, values)
+    values = [10.10, -20.20, 30.30, -40.40, 50.50]
+    this.tcService.updatePlcArray(this.arrayToRead9, values)
+    values = [1,1,1,1,1]
+    this.tcService.updatePlcArray(this.arrayToRead10, values)
   }
 
   //Delegate

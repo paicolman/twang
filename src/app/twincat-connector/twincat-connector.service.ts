@@ -17,6 +17,7 @@ export class TwincatConnectorService implements TwincatErrorHanlder {
   service = "https://192.168.1.133/TcAdsWebService/TcAdsWebService.dll"
   adsNetId = "192.168.1.133.1.1"
   port = 801
+
   twincat : TwincatClient
   errCode = 0
   errMsg = "No Errors"
@@ -24,7 +25,6 @@ export class TwincatConnectorService implements TwincatErrorHanlder {
 
 
   constructor(private http:HttpClient, private logger: NGXLogger){
-    console.info('TwincatConnectorService instantiated')
     this.twincat = new TwincatClient(this.http, this.logger)
     this.twincat.service = this.service
     this.twincat.adsNetId = this.adsNetId
@@ -46,6 +46,16 @@ export class TwincatConnectorService implements TwincatErrorHanlder {
    * @memberof TwincatConnectorService
    */
   readPlcNumbers(varsToRead:TwincatVariable[], readPlcVarsCallback:Function) {
+    this.logger.debug("TwincatConnectorService.readPlcNumbers("+varsToRead.length+" variables)")
+    //Check for no strings
+    for(const index in varsToRead) {
+      if (varsToRead[index].type === TwincatDatatype.string) {
+        this.logger.error("Tried to read strings with readPlcNumbers - Action not allowed")
+        this.delegate.errorCallback(88, "String variables not allowed with readPlcNumbers method")
+        return
+      }
+    }
+
     this.getVarHandles(varsToRead, (decodedHandlesString) => {
       const handlesReader = new DataReader(decodedHandlesString, this.logger)
 
@@ -63,6 +73,7 @@ export class TwincatConnectorService implements TwincatErrorHanlder {
         let varSize = Math.abs(varsToRead[varIdx].type)
         //Special case for real. size is set to 5 to differentiatw from DWORD. It's a hack but it works...
         if (varSize === TwincatDatatype.real) {varSize = 4}
+        if (varSize === TwincatDatatype.bool) {varSize = 1}
 
         let varHandle = handlesReader.readNUMBER(TwincatDatatype.dword)
         varHandles.push(varHandle)
@@ -72,7 +83,7 @@ export class TwincatConnectorService implements TwincatErrorHanlder {
       this.logger.trace("handles:"+varHandles)
       this.logger.trace("sizes:"+varSizes)
 
-      const symbolValuesWriter = new DataWriter()
+      const symbolValuesWriter = new DataWriter(this.logger)
 
       let parameterSize = 0
       for (const index in varHandles) {
@@ -127,6 +138,7 @@ export class TwincatConnectorService implements TwincatErrorHanlder {
    * @memberof TwincatConnectorService
    */
   readPlcString(varToRead:TwincatVariable, readPlcStringCallback: Function) {
+    this.logger.debug("TwincatConnectorService.readPlcString("+varToRead.name+", length:"+varToRead.value+")")
     const vars:TwincatVariable[] = [varToRead]
     this.getVarHandles(vars, (decodedHandlesString) => {
       const handlesReader = new DataReader(decodedHandlesString, this.logger)
@@ -137,7 +149,7 @@ export class TwincatConnectorService implements TwincatErrorHanlder {
       }
 
       const varHandle = handlesReader.readNUMBER(TwincatDatatype.dword)
-      const symbolValuesWriter = new DataWriter()
+      const symbolValuesWriter = new DataWriter(this.logger)
 
       symbolValuesWriter.writeDWORD(0xF005)
       symbolValuesWriter.writeDWORD(varHandle)
@@ -163,6 +175,13 @@ export class TwincatConnectorService implements TwincatErrorHanlder {
    * @memberof TwincatConnectorService
    */
   readPlcArray(arrayToRead:TwincatVariable, readPlcArrayCallback: Function) {
+    this.logger.debug("TwincatConnectorService.readPlcArray("+arrayToRead.name+", type: "+arrayToRead.type+", length:"+arrayToRead.type+")")
+
+    if (arrayToRead.type === TwincatDatatype.string) {
+      this.logger.error("Tried to read strings with readPlcArray - Action not allowed")
+      this.delegate.errorCallback(88, "String variables not allowed with readPlcArray method")
+      return
+    }
     const vars:TwincatVariable[] = [arrayToRead]
     this.getVarHandles(vars, (decodedHandlesString) => {
       const handlesReader = new DataReader(decodedHandlesString, this.logger)
@@ -173,7 +192,7 @@ export class TwincatConnectorService implements TwincatErrorHanlder {
       }
 
       const varHandle = handlesReader.readNUMBER(TwincatDatatype.dword)
-      const symbolValuesWriter = new DataWriter()
+      const symbolValuesWriter = new DataWriter(this.logger)
 
       symbolValuesWriter.writeDWORD(0xF005)
       symbolValuesWriter.writeDWORD(varHandle)
@@ -211,6 +230,178 @@ export class TwincatConnectorService implements TwincatErrorHanlder {
     })
   }
 
+
+  /**
+   * Writes Data to a group of variables of dyfferent types
+   *
+   * @param {TwincatVariable[]} varsToWrite: Variables with names, types and values to be written
+   * @memberof TwincatConnectorService
+   */
+  writePlcNumbers(varsToWrite:TwincatVariable[]) {
+    this.logger.debug("TwincatConnectorService.writePlcNumbers("+varsToWrite.length+" variables)")
+    //Check for no strings
+    for(const index in varsToWrite) {
+      if (varsToWrite[index].type === TwincatDatatype.string) {
+        this.logger.error("Tried to write strings with writePlcNumbers - Action not allowed")
+        this.delegate.errorCallback(88, "String variables not allowed with writePlcNumbers method")
+        return
+      }
+    }
+
+    this.getVarHandles(varsToWrite, (decodedHandlesString:string) => {
+      const handlesReader = new DataReader(decodedHandlesString, this.logger)
+      for (const index in varsToWrite) {
+        if (!this.validatePLCResponse(handlesReader, true)) {
+          console.error("Something went awfully wrong! Getting out of here!")
+          this.delegate.errorCallback(this.errCode, this.errMsg)
+        }
+      }
+
+      let varHandles: number[]= []
+      let varSizes: number[] = []
+
+      for (const varIdx in varsToWrite) {
+        let varSize = Math.abs(varsToWrite[varIdx].type)
+        //Special case for real. size is set to 5 to differentiatw from DWORD. It's a hack but it works...
+        if (varSize === TwincatDatatype.real) {varSize = 4}
+        if (varSize === TwincatDatatype.bool) {varSize = 1}
+
+        let varHandle = handlesReader.readNUMBER(TwincatDatatype.dword)
+        varHandles.push(varHandle)
+        varSizes.push(varSize)
+      }
+
+      this.logger.trace("handles:"+varHandles)
+      this.logger.trace("sizes:"+varSizes)
+
+      const symbolValuesWriter = new DataWriter(this.logger)
+
+      let parameterSize = 0
+      for (const index in varHandles) {
+        symbolValuesWriter.writeDWORD(0xF005)
+        symbolValuesWriter.writeDWORD(varHandles[index])
+        symbolValuesWriter.writeDWORD(varSizes[index])
+        parameterSize += Math.abs(varSizes[index])
+      }
+
+      for (const index in varsToWrite) {
+        symbolValuesWriter.writeANYTHING(varsToWrite[index])
+      }
+
+      const indexGroup = String(0xF081)
+      const indexOffset = String(varsToWrite.length)
+      const cbRdLen = String(parameterSize + (varsToWrite.length * 4))
+      const encodedData = symbolValuesWriter.encodeData()
+      this.twincat.readWrite(indexGroup,indexOffset, cbRdLen, encodedData, (decodedValuesString) => {
+        const valuesReader = new DataReader(decodedValuesString, this.logger)
+
+        for (const index in varsToWrite) {
+          if (!this.validatePLCResponse(valuesReader, false)) {
+            this.logger.error("Something went awfully wrong! Getting out of here!")
+            this.delegate.errorCallback(this.errCode, this.errMsg)
+          }
+        }
+        this.logger.trace(decodedValuesString)
+      });
+    });
+  }
+
+
+  /**
+   * Writes a new value to a string variable of a defined size. It will trim the value
+   * to be written to match the string variable size, or fill in with space if it is smaller.
+   *
+   * @param {TwincatVariable} varToWrite: PLC string variable, containing name, type(which must be .string) and length
+   * @param {string} stringValue: new text value to be written
+   * @memberof TwincatConnectorService
+   */
+  writePlcString(varToWrite:TwincatVariable, stringValue:string) {
+    this.logger.debug("TwincatConnectorService.writePlcString("+varToWrite.name+", value:"+stringValue+")")
+    const vars:TwincatVariable[] = [varToWrite]
+    this.getVarHandles(vars, (decodedHandlesString) => {
+      const handlesReader = new DataReader(decodedHandlesString, this.logger)
+
+      if (!this.validatePLCResponse(handlesReader, true)) {
+        this.logger.error("Something went awfully wrong! Getting out of here!")
+        this.delegate.errorCallback(this.errCode, this.errMsg)
+      }
+
+      const varHandle = handlesReader.readNUMBER(TwincatDatatype.dword)
+      const symbolValuesWriter = new DataWriter(this.logger)
+
+      symbolValuesWriter.writeDWORD(0xF005)
+      symbolValuesWriter.writeDWORD(varHandle)
+      symbolValuesWriter.writeDWORD(varToWrite.value)
+
+      if(stringValue.length > varToWrite.value) {
+        stringValue = stringValue.substr(0, varToWrite.value)
+      } else {
+        while(stringValue.length < varToWrite.value) {
+          stringValue += " "
+        }
+      }
+
+      this.logger.trace("String:"+stringValue+" - length:"+stringValue.length)
+
+      symbolValuesWriter.writeString(stringValue)
+
+      const indexGroup = String(0xF081)
+      const indexOffset = "1"
+      const cbRdLen = String(varToWrite.value + (4))
+      const encodedData = symbolValuesWriter.encodeData()
+      this.twincat.readWrite(indexGroup,indexOffset, cbRdLen, encodedData, (decodedValuesString) => {
+        this.logger.trace(decodedValuesString)
+      })
+    })
+  }
+
+  updatePlcArray(arrayToWrite:TwincatVariable, values:number[]) {
+    this.logger.debug("TwincatConnectorService.updtaePlcArray("+arrayToWrite.name+", type: "+arrayToWrite.type+", length:"+arrayToWrite.type+")")
+
+    if (arrayToWrite.type === TwincatDatatype.string) {
+      this.logger.error("Tried to write string array with updatePlcArray - Action not allowed")
+      this.delegate.errorCallback(88, "String arrays not allowed with updatePlcArray method")
+      return
+    }
+    const vars:TwincatVariable[] = [arrayToWrite]
+    this.getVarHandles(vars, (decodedHandlesString) => {
+      const handlesReader = new DataReader(decodedHandlesString, this.logger)
+
+      if (!this.validatePLCResponse(handlesReader, true)) {
+        this.logger.error("Something went wrong! Getting out of here!")
+        //this.errorCallback(this.errCode, this.errMsg)
+      }
+
+      const varHandle = handlesReader.readNUMBER(TwincatDatatype.dword)
+      const symbolValuesWriter = new DataWriter(this.logger)
+
+      let size = Math.abs(arrayToWrite.type)
+      if (size == TwincatDatatype.bool) {size = 1}
+      if (size == TwincatDatatype.real) {size = 4}
+
+      symbolValuesWriter.writeDWORD(0xF005)
+      symbolValuesWriter.writeDWORD(varHandle)
+      symbolValuesWriter.writeDWORD(arrayToWrite.value * size)
+
+      for (const index in values) {
+        const tempVar:TwincatVariable = {name: arrayToWrite.name, type: arrayToWrite.type, value: values[index]}
+        symbolValuesWriter.writeANYTHING(tempVar)
+      }
+
+      const indexGroup = String(0xF081)
+      const indexOffset = "1"
+      const cbRdLen = String(arrayToWrite.value * Math.abs(arrayToWrite.type) + (4))
+      const encodedData = symbolValuesWriter.encodeData()
+      this.twincat.readWrite(indexGroup,indexOffset, cbRdLen, encodedData, (decodedValuesString) => {
+        this.logger.trace(decodedValuesString)
+      })
+    })
+  }
+
+  /**************************************
+  * Private Methods
+  **************************************/
+
   /**
    * Gets the var handles for the PLC variables to be read.
    * (integer values pointing to the PLC memory index where the objects are stored)
@@ -221,7 +412,8 @@ export class TwincatConnectorService implements TwincatErrorHanlder {
    * @memberof TwincatConnectorService
    */
   private getVarHandles(varsToRead:TwincatVariable[], varHandlesCallback:Function) {
-    const varHandleDataWriter = new DataWriter()
+    this.logger.trace("TwincatConnectorService.getVarHandles("+varsToRead.length+" variables)")
+    const varHandleDataWriter = new DataWriter(this.logger)
     for (const idx in varsToRead) {
       varHandleDataWriter.writeDWORD(0xF003)//0xF003
       varHandleDataWriter.writeDWORD(0)
@@ -248,6 +440,7 @@ export class TwincatConnectorService implements TwincatErrorHanlder {
    * @memberof TwincatConnectorService
    */
   private validatePLCResponse(reader: DataReader, areHandles: boolean) : boolean {
+    this.logger.trace("TwincatConnectorService.validatePLCResponse(handles: "+areHandles+")")
     const err = reader.readNUMBER(TwincatDatatype.dword)
     if (areHandles) {
       const ignored = reader.readNUMBER(TwincatDatatype.dword)
@@ -267,10 +460,16 @@ export class TwincatConnectorService implements TwincatErrorHanlder {
     }
   }
 
-  //Error handler delegate function
+  //Error handler delegate functions
   httpTimeoutError(): void {
     this.delegate.errorCallback(408, "Timeout during Http request")
   }
+
+  decodingError(msg: string): void {
+    this.delegate.errorCallback(600, msg)
+  }
+
+
 }
 
 export interface TwincatConnectorDelegate {
