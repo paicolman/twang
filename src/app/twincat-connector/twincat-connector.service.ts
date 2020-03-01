@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core'
 import { TwincatClient, TwincatErrorHanlder } from './twincat-client'
 import { HttpClient } from '@angular/common/http'
 import { DataWriter } from './data-writer'
-import { TwincatVariable, TwincatString, TwincatDatatype, ADSERROR } from './twincat-interfaces'
+import { TwincatVariable, TwincatDatatype, ADSERROR } from './twincat-interfaces'
 import { DataReader } from './data-reader'
 import { NGXLogger } from 'ngx-logger'
 
@@ -125,7 +125,6 @@ export class TwincatConnectorService implements TwincatErrorHanlder {
     })
   }
 
-
   /**
    * Reads one PLC String. Requires the String's variable name and the length,
    * packed in a TwincatVariable data type
@@ -165,7 +164,6 @@ export class TwincatConnectorService implements TwincatErrorHanlder {
       })
     })
   }
-
 
   /**
    * Reads a PLC Array of any numeric type (no strings)
@@ -229,7 +227,6 @@ export class TwincatConnectorService implements TwincatErrorHanlder {
       })
     })
   }
-
 
   /**
    * Writes Data to a group of variables of dyfferent types
@@ -305,7 +302,6 @@ export class TwincatConnectorService implements TwincatErrorHanlder {
       });
     });
   }
-
 
   /**
    * Writes a new value to a string variable of a defined size. It will trim the value

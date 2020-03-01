@@ -4,7 +4,7 @@ import { NGXLogger } from 'ngx-logger';
 import { NgModule } from '@angular/core';
 import { ConvertActionBindingResult } from '@angular/compiler/src/compiler_util/expression_converter';
 
-@NgModule({})
+
 export class DataReader {
 
   offset:number;

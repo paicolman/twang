@@ -1,12 +1,32 @@
 
-<h1>TwincatConnector Check</h1>
+<mat-toolbar>
+  <span>{{ appName }}</span>
+
+</mat-toolbar>
+
+<mat-tab-group>
+  <mat-tab label="Settings">
+    <p>Here soon...</p>
+  </mat-tab>
+  <mat-tab label="R/W vars">
+    <app-read-write-variables></app-read-write-variables>
+  </mat-tab>
+  <mat-tab label="R/W string">
+    <app-read-write-string></app-read-write-string>
+  </mat-tab>
+  <mat-tab label="R/W arrays">
+    <app-read-write-arrays></app-read-write-arrays>
+  </mat-tab>
+</mat-tab-group>
+
+<!--h1>TwincatConnector Check"</h1>
 
 <h1 *ngIf="error">!!ERROR!! {{errCode}}:{{errMsg}}</h1>
 
 <button (click)="isTwincatRunning()"><h2>Check Twincat runs</h2></button>
 <h1>{{ isRunning }}</h1>
-<button (click)="readPlcNumbers()"><h2>read the vars below</h2></button>
-<button (click)="writePlcNumbers()"><h2>write them vars!</h2></button>
+<button  type="button" class="btn btn-primary" (click)="readPlcNumbers()">read the vars below</button>
+<button  type="button" class="btn btn-primary" (click)="writePlcNumbers()">write them vars!</button>
 <h3>
 <table>
   <tr *ngFor="let item of varsToRead">
@@ -31,6 +51,7 @@
 <h3>{{arrayToRead7.name}} (length:{{arrayToRead7.value}}) : {{arrayResult7}}</h3>
 <h3>{{arrayToRead8.name}} (length:{{arrayToRead8.value}}) : {{arrayResult8}}</h3>
 <h3>{{arrayToRead9.name}} (length:{{arrayToRead9.value}}) : {{arrayResult9}}</h3>
-<h3>{{arrayToRead10.name}} (length:{{arrayToRead10.value}}) : {{arrayResult10}}</h3>
+<h3>{{arrayToRead10.name}} (length:{{arrayToRead10.value}}) : {{arrayResult10}}</h3-->
+
 
 

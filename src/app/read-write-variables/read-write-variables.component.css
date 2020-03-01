@@ -1,0 +1,27 @@
+table {
+  width: 100%;
+}
+button {
+  margin: 12px;
+  width: 30%;
+}
+mat-slider{
+  width:80%;
+}
+
+.newValue {
+  width:10%
+}
+
+.mat-column-Name{
+  width:30%
+}
+.mat-column-Value{
+  width:10%
+}
+.mat-column-Slider{
+  width:50%
+}
+.mat-column-NewValue{
+  width:10%
+}

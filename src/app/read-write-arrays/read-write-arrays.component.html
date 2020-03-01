@@ -1,0 +1,19 @@
+<mat-card>
+
+    <mat-expansion-panel *ngFor="let item of allArrays; let i = index">
+      <mat-expansion-panel-header >
+        <mat-panel-title>
+          {{item.name}}
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+      <mat-grid-list cols="6" rowHeight="2em">
+        <mat-grid-tile>PLC:</mat-grid-tile>
+        <mat-grid-tile *ngFor="let element of valuesToRead[i]">{{ element }}</mat-grid-tile>
+        <mat-grid-tile>New:</mat-grid-tile>
+        <mat-grid-tile *ngFor="let element of valuesToWrite[i]">{{ element }}</mat-grid-tile>
+      </mat-grid-list>
+    </mat-expansion-panel>
+    <button mat-raised-button color="secondary" (click)="randomize()">Generate new random numbers</button>
+    <button mat-raised-button color="primary" (click)="readAllArrays()">Read All Arrays</button>
+    <button mat-raised-button color="accent" (click)="writeAllArrays()">Write All Arrays</button>
+</mat-card>

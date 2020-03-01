@@ -1,0 +1,10 @@
+<mat-card>
+  <div class="mat-elevation-z8">
+    <mat-card-title>{{ stringToRead.name }}</mat-card-title>
+    <input matInput size="40" type="text" [placeholder]="stringValue" (input)="typing($event.target.value)" [value]="valueToWrite">
+    <mat-card-actions>
+      <button mat-raised-button color="primary" (click)="readString()">Read String</button>
+      <button mat-raised-button color="accent" (click)="writeString()">Write String</button>
+    </mat-card-actions>
+  </div>
+</mat-card>

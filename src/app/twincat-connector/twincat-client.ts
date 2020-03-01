@@ -57,7 +57,7 @@ export class TwincatClient {
     this.logger.trace("TwincatErrorHanlder.sendMessage("+message+")")
     const headers = {'Content-Type': 'text/xml'}
     this.http.post(this.service, message, {headers, responseType:'text'})
-    .pipe(timeout(5000), //TODO: Parametrize the timeout!!
+    .pipe(timeout(10000), //TODO: Parametrize the timeout!!
             catchError((error) => {
               this.logger.error("Timeout Error")
               this.errorHandler.httpTimeoutError()

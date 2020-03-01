@@ -62,7 +62,7 @@ export class DataWriter {
   writeINT(num:number) {
     this.logger.trace("DataWriter.writeINT("+num+")")
     let byteArr = []
-    for(let i in [0,1]) {
+    for(let i = 0; i < 2; i++) {
       byteArr.push(new DataView(Uint16Array.of(num).buffer).getUint8(i))
     }
     let result = "";
@@ -75,7 +75,7 @@ export class DataWriter {
   writeDINT(num:number) {
     this.logger.trace("DataWriter.writeDINT("+num+")")
     let byteArr = []
-    for(let i in [0,1,2,3]) {
+    for(let i = 0; i < 4; i++){
       byteArr.push(new DataView(Uint32Array.of(num).buffer).getUint8(i))
     }
     let result = "";

@@ -10,7 +10,7 @@ export interface TwincatString {
 }
 
 export enum TwincatDatatype {
-  bool = 10, //Special case 1:10 to differentiate from byte
+  bool = 10, //Special case 1: 10 to differentiate from byte
   sint = -1, //Special case 2: All signed number to differentiate from unsigned
   int = -2,
   dint = -4,

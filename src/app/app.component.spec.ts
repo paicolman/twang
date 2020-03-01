@@ -1,11 +1,19 @@
 import { TestBed, async } from '@angular/core/testing';
 import { AppComponent } from './app.component';
+//import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { TwincatConnectorService }  from './logger-mock/logger-mock'
+import { Logger } from './logger-mock/logger-mock'
+
+
 
 describe('AppComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [
         AppComponent
+      ],
+      imports: [TwincatConnectorService,
+        Logger
       ],
     }).compileComponents();
   }));
